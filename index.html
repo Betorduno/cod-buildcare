@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script> -->
+<script src="./src/jquery.min.js"></script>
+<script>
+    let seccion =[]
+    let categoria =[]
+    let imagen= []
+    const url = 'https://cdn.contentful.com/spaces/ob1sax9uyj5s/environments/master/entries?access_token=Xj2yvgxrikMwd44F2lbfcOvoe6EbPUAJb2TYgTpnU34&content_type=fotos';
+    fetch(url)
+        .then((response) => response.json())
+        .then(res => {
+            let information = res.items;
+            let assets = res.includes.Asset;
+            let entry = res.includes.Entry;
+        //    console.log(res);
+            let formatInfo = information.map(info =>  { 
+                return { 
+                    title: info.fields.seccion,
+                    ids: info.fields.image.map(img => img.sys.id),
+                    idcatg: info.fields.categoria.map(cat =>cat.sys.id)
+                }
+            })
+
+            let formatAssets = assets.map(asset => {
+                return {
+                    file: asset.fields.file,
+                    id: asset.sys.id
+                }
+            })
+
+            let formatEntry = entry.map(entry=>{
+                return{
+                    categoria: entry.fields.nameCategoria,
+                    idSys: entry.sys.id
+                }
+            })
+            return {
+                formatInfo,
+                formatAssets, 
+                formatEntry
+            }
+        }).then(({formatInfo,formatAssets, formatEntry}) => {
+            // console.log('info: ', formatInfo)
+            // console.log('asset: ', formatAssets)
+            //  console.log('Entry: ', formatEntry)
+
+            formatInfo.forEach(info => {
+                let urls = info.ids.map(id => formatAssets.filter(asset => asset.id === id))
+                let catga = info.idcatg.map(c => formatEntry.filter(date => date.idSys === c))
+                console.log(catga)
+                $('.seccion').append("<h1>" + info.title + " </h1>") 
+
+                catga.forEach(categoria => {
+                    $('.seccion').append("<li>"+ categoria[0].categoria+"</li>")
+                });
+                 
+                urls.forEach(url => {
+                    $('.seccion').append("<img src='" + url[0].file.url + "' />")
+                })
+            });
+        })
+</script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Prueba</title>
+</head>
+
+<body>
+        <ul class="seccion">
+        </ul>
+
+
+</body>
+
+</html>
