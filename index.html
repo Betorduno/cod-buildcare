@@ -1,80 +1,1393 @@
 <!DOCTYPE html>
-<html lang="en">
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script> -->
-<script src="./src/jquery.min.js"></script>
-<script>
-    let seccion =[]
-    let categoria =[]
-    let imagen= []
-    const url = 'https://cdn.contentful.com/spaces/ob1sax9uyj5s/environments/master/entries?access_token=Xj2yvgxrikMwd44F2lbfcOvoe6EbPUAJb2TYgTpnU34&content_type=fotos';
-    fetch(url)
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Landing Page</title>
+    <meta name="description" content="The HTML5 Herald" />
+    <meta name="author" content="SitePoint" />
+    <link rel="stylesheet" href="css/new-style.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <script src="./src/jquery.min.js"></script>
+    <script>
+        let seccion =[]
+        let categoria =[]
+        let imagen= []
+        const url = 'https://cdn.contentful.com/spaces/ob1sax9uyj5s/environments/master/entries?access_token=Xj2yvgxrikMwd44F2lbfcOvoe6EbPUAJb2TYgTpnU34&content_type=fotos';
+        fetch(url)
         .then((response) => response.json())
         .then(res => {
             let information = res.items;
-            let assets = res.includes.Asset;
-            let entry = res.includes.Entry;
-        //    console.log(res);
-            let formatInfo = information.map(info =>  { 
-                return { 
-                    title: info.fields.seccion,
-                    ids: info.fields.image.map(img => img.sys.id),
-                    idcatg: info.fields.categoria.map(cat =>cat.sys.id)
-                }
-            })
-
-            let formatAssets = assets.map(asset => {
-                return {
-                    file: asset.fields.file,
-                    id: asset.sys.id
-                }
-            })
-
-            let formatEntry = entry.map(entry=>{
-                return{
-                    categoria: entry.fields.nameCategoria,
-                    idSys: entry.sys.id
-                }
-            })
-            return {
-                formatInfo,
-                formatAssets, 
-                formatEntry
-            }
-        }).then(({formatInfo,formatAssets, formatEntry}) => {
-            // console.log('info: ', formatInfo)
-            // console.log('asset: ', formatAssets)
-            //  console.log('Entry: ', formatEntry)
-
-            formatInfo.forEach(info => {
-                let urls = info.ids.map(id => formatAssets.filter(asset => asset.id === id))
-                let catga = info.idcatg.map(c => formatEntry.filter(date => date.idSys === c))
-                console.log(catga)
-                $('.seccion').append("<h1>" + info.title + " </h1>") 
-
-                catga.forEach(categoria => {
-                    $('.seccion').append("<li>"+ categoria[0].categoria+"</li>")
-                });
-                 
-                urls.forEach(url => {
-                    $('.seccion').append("<img src='" + url[0].file.url + "' />")
+            
+                let assets = res.includes.Asset.map(asset => {
+                    return {
+                        title: asset.fields.title,
+                        url: asset.fields.file.url,
+                        idSys:asset.sys.id
+                    }
                 })
-            });
-        })
-</script>
+                
+                let entries = res.includes.Entry.map(entry => {
+                    return {
+                        images: entry.fields.image.map(image=>{
+                            return assets.filter(asset=> asset.idSys === image.sys.id )[0]
+                        }),
+                        category: entry.fields.nameCategoria,
+                        categoryId: entry.sys.id
+                    }
+                });
+    
+               let items = res.items.map(item=>{
+                   return {
+                        seccion: item.fields.seccion,
+                        idSys: item.sys.id,
+                        id:item.fields.id,
+                        categories: item.fields.categoria.map(cat => {
+                           return entries.filter(entry => entry.categoryId === cat.sys.id)[0]
+                        })
+                   }
+               })
+               return items
+            }).then(items=>{
+              items =items.sort((pre, next)=>{
+                  if(pre.id<next.id){
+                    return -1
+                  }
+                  if(pre.id>next.id){
+                    return 1
+                  }
+                  return 0
+              })
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Prueba</title>
-</head>
+              console.log(items)
 
-<body>
-        <ul class="seccion">
-        </ul>
+              let currentCategory = null;
+
+              for (let idxSection = 0; idxSection < items.length; idxSection++) {
+                const item = items[idxSection];
+                let sectionIdxPlus = (idxSection + 1)
+                // section
+                $('.third' + sectionIdxPlus).click(function(){
+                  let section = item
+                  console.log('seccion ' + sectionIdxPlus)
+                  // category
+                  for (let idxCategory = 0; idxCategory < item.categories.length; idxCategory++) {
+                    const category = item.categories[idxCategory];
+                    let classCategory = '.cat' + sectionIdxPlus + idxCategory
+                    $(classCategory).click(function(){
+                      $(classCategory).addClass('active')
+                      if (currentCategory) $(currentCategory).removeClass('active')
+                      currentCategory = classCategory
+                      console.log('categoria ' + idxCategory)
+                      // images
+                      for (let idxImg = 0; idxImg < category.images.length; idxImg++) {
+                        const image = category.images[idxImg];
+
+                        console.log('image ' + idxImg)
+                        $('.img' + sectionIdxPlus + idxImg).css("background-image", "url('"+ image.url +"')");
+                      } 
+
+                    })
+                    
+                    //initialize in first category
+                    if (idxCategory === 0) {
+                      $(classCategory).trigger('click');
+                    }
+                  }
+                })
+              }
+            })
+    </script>
+  
+  </head>
+
+  <body>
+    <div id="loading"></div>
+
+    <div class="body-bg">
+      <div id="top-buildings-sections" class="top-buildings-sections">
+        <div id="section-inner" class="section-inner">
+          <div class="images-outer img-1">
+            <div class="single-img-outer">
+              <img id="birds1" src="images/Birds-01.png" />
+            </div>
+          </div>
+          <div class="images-outer img-2">
+            <div class="single-img-outer">
+              <img id="cloud1" src="images/Cloud01.png" />
+            </div>
+          </div>
+          <div class="images-outer img-3">
+            <div class="single-img-outer">
+              <img id="cloud2" src="images/Cloud02.png" />
+            </div>
+          </div>
+          <div class="images-outer img-4">
+            <div class="single-img-outer">
+              <img id="cloud3" src="images/Cloud03.png" />
+            </div>
+          </div>
+          <div class="images-outer img-5">
+            <div class="single-img-outer">
+              <img id="cloud4" src="images/Cloud04.png" />
+            </div>
+          </div>
+          <div class="images-outer img-6">
+            <div class="single-img-outer">
+              <img id="cloud5" src="images/Cloud05.png" />
+            </div>
+          </div>
+          <div class="images-outer img-7">
+            <div class="single-img-outer">
+              <img id="cloud6" src="images/Cloud06.png" />
+            </div>
+          </div>
+          <div class="images-outer img-8">
+            <div class="single-img-outer">
+              <img id="cloud7" src="images/Cloud07.png" />
+            </div>
+          </div>
+          <div class="images-outer img-9">
+            <div class="single-img-outer">
+              <img id="cloud8" src="images/Cloud08.png" />
+            </div>
+          </div>
+          <div class="images-outer img-10">
+            <div class="single-img-outer">
+              <img id="build1" src="images/Edificio01.png" />
+            </div>
+          </div>
+          <div class="images-outer img-11">
+            <div class="single-img-outer">
+              <img src="images/Edificio02.png" />
+            </div>
+          </div>
+          <div class="images-outer img-12">
+            <div class="single-img-outer">
+              <img src="images/Edificio03.png" />
+            </div>
+          </div>
+          <div class="images-outer img-13 hidden-xs1">
+            <div class="single-img-outer">
+              <img src="images/Edificio04.png" />
+            </div>
+          </div>
+          <div class="images-outer img-13 visible-xs1">
+            <div class="single-img-outer">
+              <img src="images/mobile/Edificio04.png" />
+            </div>
+          </div>
+          <div class="images-outer img-14 hidden-xs1">
+            <div class="single-img-outer">
+              <img src="images/Edificio05.png" />
+            </div>
+          </div>
+          <div class="images-outer img-14 visible-xs1">
+            <div class="single-img-outer">
+              <img src="images/mobile/Edificio05.png" />
+            </div>
+          </div>
+          <div class="images-outer img-15 hidden-xs1">
+            <div class="single-img-outer">
+              <img src="images/Edificio06.png" />
+            </div>
+          </div>
+          <div class="images-outer img-15 visible-xs1">
+            <div class="single-img-outer">
+              <img src="images/mobile/Edificio06.png" />
+            </div>
+          </div>
+          <div class="images-outer img-16 hidden-xs1">
+            <div class="single-img-outer">
+              <img src="images/Edificio07.png" />
+            </div>
+          </div>
+          <div class="images-outer img-16 visible-xs1">
+            <div class="single-img-outer">
+              <img src="images/mobile/Edificio07.png" />
+            </div>
+          </div>
+          <div class="images-outer img-17">
+            <div class="single-img-outer">
+              <img src="images/Sky01.png" />
+            </div>
+          </div>
+          <div class="images-outer img-18">
+            <div class="single-img-outer">
+              <img src="images/Sky02.png" />
+            </div>
+          </div>
+          <div class="images-outer img-19">
+            <div class="single-img-outer">
+              <img src="images/Sky03.png" />
+            </div>
+          </div>
+          <div class="images-outer img-20">
+            <div class="single-img-outer">
+              <img src="images/window.png" />
+            </div>
+          </div>
+          <div class="images-outer img-21">
+            <div class="single-img-outer">
+              <img src="img/ezgif.com-crop.gif" />
+            </div>
+          </div>
+        </div>
+        <!-- section 1 -->
+        <div class="section-for-moving">
+          <div class="header hero-none" id="know">
+            <div class="container">
+              <div class="main-nav">
+                <ul>
+                  <li
+                    class="click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#beginnings"
+                  >
+                    The Beginnings
+                  </li>
+                  <li
+                    class="click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#know"
+                  >
+                    Know-How
+                  </li>
+                  <li
+                    class="lets click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#lets"
+                  >
+                    Let's Connect
+                  </li>
+                </ul>
+              </div>
+              <div class="header-inner flex-b">
+                <div id="logo" class="build-logo">
+                  <img src="img/main-logo-2.png" />
+                </div>
+                <div class="we-do neu-light">
+                  <div class="we">
+                    <h1>WE</h1>
+                  </div>
+                  <div class="outer-do">
+                    <div class="do-it">
+                      <p>Do it well,</p>
+                    </div>
+                    <div class="do-it-with">
+                      <p><b>Do it with heart</b></p>
+                    </div>
+                  </div>
+                </div>
+                <div id="always" class="always">
+                  <p>
+                    <b>we always prioritize our customers needs</b><br />
+                    by creating service plans tailored to their<br />
+                    specific requests.
+                  </p>
+                </div>
+              </div>
+
+              <div id="scroll" class="scroll">
+                <div class="futura-text">
+                  <p class="futura">
+                    Scroll Down
+                  </p>
+                </div>
+                <div class="futura-img">
+                  <a href="#"><img class="arrow" src="img/arrow.png"/></a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="about-us-slider-outer hero-none" id="beginnings">
+            <img class="beg-img1" src="./images/beg.png" alt="#" />
+            <img class="beg-img2" src="./images/beg1.png" alt="#" />
+            <img class="beg-img3" src="./images/beg2.png" alt="#" />
+            <div class="container h-100vh">
+              <div class="main-nav">
+                <ul>
+                  <li
+                    class="click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#beginnings"
+                  >
+                    The Beginnings
+                  </li>
+                  <li
+                    class="click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#know"
+                  >
+                    Know-How
+                  </li>
+                  <li
+                    class="lets click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#lets"
+                  >
+                    Let's Connect
+                  </li>
+                </ul>
+              </div>
+              <div class="about-us-slider-inner flex-b">
+                <button class="about-arrows prev" type="button">
+                  <img src="./images/Asset-3clean.png" alt="" />
+                </button>
+                <div class="slider-content">
+                  <p class="slider-heading color-blue-1">
+                    The <b> Beginnings </b>
+                  </p>
+                  <div class="slider-text color-blue-1">
+                    Build <b> Care </b> is a women and minority-owned company.
+                  </div>
+                  <p class="slider-text-2">
+                    We always prioritize our customers needs by creating service
+                    plans <br />
+                    tailored to their specific requests.
+                  </p>
+                  <p class="slider-text-3">
+                    We are an up and coming full-service maintenance company.We
+                    pride <br />
+                    ourselves in having a team that has many years of experience
+                    in the <br />
+                    maintenance industry.
+                  </p>
+
+                  <div class="color-circles">
+                    <div class="circle-1 circled"></div>
+                    <div class="circle-2 circled"></div>
+                    <div class="circle-3 circled"></div>
+                    <div class="circle-4 circled"></div>
+                    <div class="circle-5 circled"></div>
+                  </div>
+                </div>
+                <button class="about-arrows next" type="button">
+                  <img src="./images/Asset-3clean.png" alt="" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="about-us-slider-outer contact-us-slider-sec hero-none"
+            id="lets"
+          >
+            <img class="con-img1" src="./images/beg.png" alt="#" />
+            <img class="con-img3" src="./images/beg2.png" alt="#" />
+            <div class="container h-100vh">
+              <div class="main-nav">
+                <ul>
+                  <li
+                    class="click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#beginnings"
+                  >
+                    The Beginnings
+                  </li>
+                  <li
+                    class="click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#know"
+                  >
+                    Know-How
+                  </li>
+                  <li
+                    class="lets click-toggle-block1"
+                    data-target-none=".hero-none"
+                    data-target="#lets"
+                  >
+                    Let's Connect
+                  </li>
+                </ul>
+              </div>
+              <div class="about-us-slider-inner flex-b contact-us-section">
+                <div class="slider-content">
+                  <p class="slider-heading color-blue-1">
+                    Let´s <b> Connect </b>
+                  </p>
+                  <div class="contact-us-sec">
+                    <div class="contact-info">
+                      <img src="./images/loc.png" alt="#" />
+                      <h6>Our Office</h6>
+                      <p>1 Passaic Ave Ste 1A</p>
+                      <p>Wood-Ridge, NJ 07020</p>
+                      <hr />
+                      <h6>Ship Address</h6>
+                      <p>P.O. Box 211 Edgewater</p>
+                      <p>NJ 07020</p>
+                    </div>
+                    <div class="contact-info">
+                      <img src="./images/msg.png" alt="#" />
+                      <h6>Message Us</h6>
+                      <p>
+                        <a href="mailto:info@build-care.com"
+                          >info@build-care.com</a
+                        >
+                      </p>
+                    </div>
+                    <div class="contact-info">
+                      <img src="./images/phone.png" alt="#" />
+                      <h6>Call Us</h6>
+                      <p>+1 (551) 254-5544</p>
+                    </div>
+                  </div>
+                  <div class="foot-3">
+                    <p class="follow-text">Follow us:</p>
+                    <a href="#"><img src="./images/icon1.png" alt="#"/></a>
+                    <a href="#"><img src="./images/icon2.png" alt="#"/></a>
+                    <a href="#"><img src="./images/icon3.png" alt="#"/></a>
+                    <a href="#"><img src="./images/icon4.png" alt="#"/></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- section 2 -->
+
+        <section class="second pos-relative">
+          <div class="video-secfor-second" id="video-col">
+            <img src="./images/video.png" alt="#" />
+            <span
+              class="click-toggle-none"
+              none-target="#video-col"
+              block-target=".video-con"
+              >X</span
+            >
+          </div>
+          <div class="second-container video-con">
+            <div class="content-2">
+              <div class="video-outer">
+                <!-- <p
+                  class="click-toggle-block"
+                  data-target-none=".video-con"
+                  data-target="#video-col"
+                >
+                  <b>Click and play</b> <br />
+                  the video
+                </p> -->
+              </div>
+              <div class="build-outer first-cricle for-desktop">
+                <p><b>Hello!</b> we are Build <b>Care</b></p>
+                <div class="circle">
+                  <img class="logo-b" src="img/logo.png" />
+                  <p>Build <b>care</b></p>
+                </div>
+              </div>
+              <div class="build-outer first-cricle for-mobile">
+                <div class="circle">
+                  <img class="logo-b" src="img/logo.png" />
+                  <p>Build <b>care</b></p>
+                </div>
+                <p><b>Hello!</b> we are Build <b>Care</b></p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="for-desktop1">
+        <section class="third for-other-sec">
+          <div class="inner-third third1">
+            <div class="third-container">
+              <div class="bring-outer">
+                <div class="circle orange">
+                  <img class="logo-b" src="img/asset_1.png" />
+                  <p>
+                    <b> William</b> <br /><span class="circle-small-text">
+                      Porter
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    Bring a cleaning <br /><b> crew ASAP!!!</b>
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff orange-main">Professional Services</p>
+                </div>
+              </div>
+
+              <div class="package-outer third-circle">
+                <div class="circle orange">
+                  <img class="logo-b" src="img/asset_2.png" />
+                  <p>
+                    <b>Emma</b> <br /><span class="circle-small-text">
+                      Porter
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    Has my
+                    <b>
+                      package <br />
+                      arrived?</b
+                    >
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff orange-main">Professional Services</p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="arrow-circle click-toggle-block"
+              data-target-none=".third1"
+              data-target="#third1"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+          </div>
+          <div class="toggle-section" id="third1">
+            <div
+              class="arrow-circle click-toggle-none"
+              none-target="#third1"
+              block-target=".third1"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+            <div class="toggle-inner">
+              <div class="toggle-menue">
+                <div class="toggle-build">
+                  <p>Build<b>Care</b></p>
+                  <div class="line"></div>
+                </div>
+                <div class="toggle-heading">
+                  <p><b> Professional </b> Services</p>
+                </div>
+                <div class="toggle-buttons">
+                  <ul>
+                    <li class="cat10 active">
+                      <i class="fa fa-angle-right"></i> Concierge
+                    </li>
+                    <li class="cat11"><i class="fa fa-angle-right"></i> Technicians</li>
+                    <li class="cat12"><i class="fa fa-angle-right"></i> Porter</li>
+                    <li class="cat13"><i class="fa fa-angle-right"></i> Labor</li>
+                    <li class="cat14"><i class="fa fa-angle-right"></i> Cleaners</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="toggle-menue-content">
+                <div class="img10 foto-1">
+                  <p>Foto 01</p>
+                </div>
+                <div class="other-photos">
+                  <div class="foto-block-1">
+                    <div class=" img11 foto-2">
+                      <p>Foto 02</p>
+                    </div>
+                    <div class="img12 foto-3">
+                      <p>Foto 03</p>
+                    </div>
+                  </div>
+                  <div class="foto-block-2">
+                    <div class="img13 foto-4">
+                      <p>Foto 04</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- Section 2-->
+        <section class="third for-other-sec for-other-sec1">
+          <div class="inner-third third2">
+            <div class="third-container">
+              <div class="bring-outer">
+                <div class="circle">
+                  <img class="logo-b" src="img/asset_3.png" />
+                  <p>
+                    <b>Alison</b> <br /><span class="circle-small-text">
+                      Steam carpet<br />
+                      clean
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    As always places looks spotless<br /><b
+                      >after the carpet shampoo.</b
+                    >
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff cyan-main">
+                    <b
+                      >Building <br />
+                      Maintenance</b
+                    >
+                    <br />
+                    Services
+                  </p>
+                </div>
+              </div>
+
+              <div class="package-outer third-circle">
+                <div class="circle">
+                  <img class="logo-b" src="img/asset_4.png" />
+                  <p>
+                    <b>James</b> <br /><span class="circle-small-text">
+                      General <br />Maintenance
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    This apt is too old,<br />
+                    <b> is time to update.</b>
+                  </p>
+                  <p class="proff cyan-main">
+                    <b
+                      >Building <br />
+                      Maintenance</b
+                    >
+                    <br />
+                    Services
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="arrow-circle click-toggle-block"
+              data-target-none=".third2"
+              data-target="#third2"
+              style="background-color: #70CDDD;"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+          </div>
+          <div class="toggle-section maintenance" id="third2">
+            <div
+              class="arrow-circle arrow-circle-maintenance click-toggle-none"
+              none-target="#third2"
+              block-target=".third2"
+              style="    background-color: #72C9BD;"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+            <div class="toggle-inner">
+              <div class="toggle-menue-content">
+                <div class="other-photos">
+                  <div class="foto-block-2">
+                    <div class="img20 foto-4">
+                      <p>Foto 04</p>
+                    </div>
+                  </div>
+                  <div class="foto-block-1">
+                    <div class="img21 foto-2">
+                      <p>Foto 02</p>
+                    </div>
+                    <div class="img22 foto-3">
+                      <p>Foto 03</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="img23 foto-1">
+                  <img class="video-img" src="./images/video1.png" alt="#" />
+                </div>
+              </div>
+
+              <div class="toggle-menue toggle-menue-maintenance">
+                <div class="toggle-build">
+                  <p>Build<b>Care</b></p>
+                  <div class="line maintenance-line "></div>
+                </div>
+                <div class="toggle-heading">
+                  <p><b> Professional </b> Services</p>
+                </div>
+                <div class="toggle-buttons">
+                  <ul>
+                    <li class="cat20 active">
+                      <i class="fa fa-angle-right"></i> Concierge
+                    </li>
+                    <li class="cat21"><i class="fa fa-angle-right"></i> Technicians</li>
+                    <li class="cat22"><i class="fa fa-angle-right"></i> Porter</li>
+                    <li class="cat23"><i class="fa fa-angle-right"></i> Labor</li>
+                    <li class="cat24"><i class="fa fa-angle-right"></i> Cleaners</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="third for-other-sec">
+          <div class="inner-third third3">
+            <div class="third-container">
+              <div class="bring-outer">
+                <div class="circle">
+                  <img class="logo-b" src="img/asset_5.png" />
+                  <p>
+                    <b>Claire</b> <br /><span class="circle-small-text">
+                      Update Units
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    I need updates on my kitchen.<br /><b>Can you help!!!</b>
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff cyan-main">
+                    <b>Supplementary</b> <br />
+                    Services
+                  </p>
+                </div>
+              </div>
+
+              <div class="package-outer third-circle">
+                <div class="circle">
+                  <img class="logo-b" src="img/asset_7.png" />
+                  <p>
+                    <b>Andrew</b> <br /><span class="circle-small-text">
+                      Landscaping</span
+                    >
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    GM Robert, unit turn<br /><b>is ready to start tomorrow.</b>
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff cyan-main">
+                    <b>Supplementary</b> <br />
+                    Services
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="arrow-circle click-toggle-block"
+              data-target-none=".third3"
+              data-target="#third3"
+              style="background-color: #80D4F7"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+          </div>
+          <div class="toggle-section" id="third3">
+            <div
+              class="arrow-circle click-toggle-none"
+              none-target="#third3"
+              block-target=".third3"
+              style="background-color: #80D4F7"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+            <div class="toggle-inner">
+              <div class="toggle-menue Supplementary-toggle-menue">
+                <div class="toggle-build">
+                  <p>Build<b>Care</b></p>
+                  <div class="line"></div>
+                </div>
+                <div class="toggle-heading">
+                  <p><b> Professional </b> Services</p>
+                </div>
+                <div class="toggle-buttons">
+                  <ul>
+                    <li class="active cat30">
+                      <i class="fa fa-angle-right"></i> Concierge
+                    </li>
+                    <li class="cat31"><i class="fa fa-angle-right"></i> Technicians</li>
+                    <li class="cat32"><i class="fa fa-angle-right"></i> Porter</li>
+                    <li class="cat33"><i class="fa fa-angle-right"></i> Labor</li>
+                    <li class="cat34"><i class="fa fa-angle-right"></i> Cleaners</li>
+                  </ul>
+                </div>
+              </div>
+              <div
+                class="toggle-menue-content Supplementary-toggle-menue-content"
+              >
+                <div class="Supplementary-outer-con">
+                  <div class="Supplementary-1 Supplementaryed">
+                    <div class="img30 foto-1 Supplementary-text Supplementary-text-1">
+                      <p>Foto 01</p>
+                    </div>
+                  </div>
+                  <div class="Supplementary-2 Supplementaryed">
+                    <div class="img31 foto-2 Supplementary-text">
+                      <p>Foto 02</p>
+                    </div>
+                  </div>
+                  <div class="Supplementary-3 Supplementaryed">
+                    <div class="img32 foto-3 Supplementary-text">
+                      <p>Foto 03</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="third for-other-sec for-other-sec1">
+          <div class="inner-third third4">
+            <div class="third-container">
+              <div class="bring-outer">
+                <div class="circle light-red-2">
+                  <img class="logo-b" src="img/asset-8.png" />
+                  <p>
+                    <b>Emily</b> <br /><span class="circle-small-text">
+                      Emergency
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    There is a leak! BC<b> how soon <br />can you be here?</b>
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff light-red">
+                    <b>Emergency</b> Services <br />
+                    <b> 24 Hours Available</b>
+                  </p>
+                </div>
+              </div>
+
+              <div class="package-outer third-circle for-index">
+                <div class="circle light-red-2">
+                  <img class="logo-b" src="img/asset_9.png" />
+                  <p>
+                    <b>Noah</b> <br /><span class="circle-small-text">
+                      Emergency
+                    </span>
+                  </p>
+                </div>
+                <div class="circle-text-outer">
+                  <p class="circle-right-text">
+                    Bring a cleaning <br /><b> crew ASAP!!!</b>
+                    <!-- <br><span>Professional Services</span> -->
+                  </p>
+                  <p class="proff light-red">
+                    <b>Emergency</b> Services <br />
+                    <b> 24 Hours Available</b>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="arrow-circle click-toggle-block"
+              data-target-none=".third4"
+              data-target="#third4"
+              style="background-color: #F37570;"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+          </div>
+          <div class="toggle-section " id="third4">
+            <div
+              class="arrow-circle arrow-circle-maintenance click-toggle-none"
+              none-target="#third4"
+              block-target=".third4"
+              style="    background-color: #F37470;"
+            >
+              <img src="./images/Asset-3clean.png" alt="" />
+            </div>
+            <div class="toggle-inner">
+              <div class="toggle-menue red-bg visible-xs">
+                <div class="toggle-build">
+                  <p>Build<b>Care</b></p>
+                  <div class="line"></div>
+                </div>
+                <div class="toggle-heading">
+                  <p><b> Emergency </b> Services</p>
+                </div>
+              </div>
+              <div class="toggle-third-secton">
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+              </div>
+
+              <div class="toggle-second-secton">
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+              </div>
+              <div class="toggle-second-secton">
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+                <div class="icon-box">
+                  <img src="./images/modifier.png" alt="#" />
+                  <p>Dehumidifier</p>
+                </div>
+              </div>
+
+              <div class="toggle-menue red-bg hidden-xs">
+                <div class="toggle-build">
+                  <p>Build<b>Care</b></p>
+                  <div class="line"></div>
+                </div>
+                <div class="toggle-heading">
+                  <p><b> Emergency </b> Services</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="quote">
+        <img class="girl" src="images/Calle01.png" alt="" />
+        <img class="man" src="images/HombreSentado.png" alt="" />
+        <div class="quote-container">
+          <div class="quote-content">
+            <div class="content-logo">
+              <p>LOGO</p>
+            </div>
+
+            <div class="quote-text">
+              <img class="quote-img" src="./images/arrow.png" alt="#" />
+              <img class="quote-img1" src="./images/Asset-3clean.png" alt="#" />
+              <img class="quote-img2" src="./images/Asset-3clean.png" alt="#" />
+              <p class="no-br">
+                <b
+                  >Lorem ipsum dolor<br />
+                  sit amet,</b
+                >
+                consectetur adipiscing elit. Maecenas pulvinar<br />
+                nec quam in tincidunt. Vivamus tristique justo eget ex<br />
+                consequat, ac vehicula augue condimentum.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="work">
+      <div class="work-container">
+        <div clas="work-outer">
+          <!-- <div class="img-bench">
+					<img src="img/last-bg.jpg">
+				</div> -->
+          <div class="main-work">
+            <div class="work-title">
+              <p>
+                <b
+                  >We<br />
+                  Work</b
+                >
+                <br />Together:
+              </p>
+            </div>
+            <div class="work-boxes-outer">
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+              <div class="work-boxes"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- <section class="license">
+		<div class="license-container">
+			<div class="license-txt">
+				<p> <b>Our</b> <br>License:</p>
+			</div>
+			<div class="license-company">
+				<img class="asset-logo" src="img/asset-3.png">
+			</div>
+		</div>
+
+	</section> -->
+
+    <section class="license">
+      <div class="license-container">
+        <div class="license-txt">
+          <p><b>Our</b> <br />License:</p>
+        </div>
+        <div class="license-company">
+          <div class="img-outer">
+            <img src="img/Asset-10.png" alt="" />
+          </div>
+          <div class="img-outer">
+            <img src="img/Asset-10.png" alt="" />
+          </div>
+          <div class="img-outer">
+            <img src="img/Asset-10.png" alt="" />
+          </div>
+          <div class="img-outer">
+            <img src="img/Asset-10.png" alt="" />
+          </div>
+          <div class="img-outer">
+            <img src="img/Asset-10.png" alt="" />
+          </div>
+          <div class="img-outer">
+            <img src="img/Asset-10.png" alt="" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="footer">
+      <div class="footer-container">
+        <div class="foot-1">
+          <img src="img/asset-4.png" />
+        </div>
+        <div class="foot-2">
+          <p>
+            Passaic Ave Ste 1A,Wood-Ridge, NJ 07020<br />
+            P.O. Box 211 Edgewater, NJ 07020<br />
+            Office: +1 (551) 254-5544<br />
+            info@build-care.com
+          </p>
+        </div>
+        <div class="foot-3">
+          <p class="follow-text">Follow us:</p>
+          <a href="#"><img src="./images/icon1.png" alt="#"/></a>
+          <a href="#"><img src="./images/icon2.png" alt="#"/></a>
+          <a href="#"><img src="./images/icon3.png" alt="#"/></a>
+          <a href="#"><img src="./images/icon4.png" alt="#"/></a>
+        </div>
+      </div>
+    </section>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script>
+      window.jQuery ||
+        document.write(
+          '<script src="js/vendor/jquery-1.11.2.min.js"><\/script>'
+        );
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/plugins/BezierPlugin.min.js"></script>
+	
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.5/velocity.min.js"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/ScrollMagic.min.js"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.7/plugins/animation.velocity.min.js"></script>
 
 
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/plugins/animation.gsap.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/plugins/debug.addIndicators.min.js"></script>
 
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        let controller = new ScrollMagic.Controller();
+
+        let timeline1 = new TimelineMax();
+        let timeline2 = new TimelineMax();
+        let timeline3 = new TimelineMax();
+        let timeline4 = new TimelineMax();
+        let timeline5 = new TimelineMax();
+        let timeline6 = new TimelineMax();
+
+
+		//#Primer parametro la pocición 7 es el objecto a animar
+        //#Segunda parammetro la direcciónn
+        //#Tercer parametro
+			timeline1.to("#cloud1", 6, {
+			x: 250,
+			y: 40,
+			ease:Power4.easeInOut
+			})
+
+			timeline1.to('#cloud2', 6, {
+        		x: -100
+			}, '-=6')
+	
+			// timeline1.to('#cloud3', 6, {
+			// 	y: 300
+			// }, '-=6')
+
+
+			timeline1.to('#cloud4', 6, {
+				y: 300
+			}, '-=6')
+
+
+
+
+			timeline2.to('#cloud5', 2, {
+				x: 300
+			}, '-=6')
+
+
+			timeline2.to('#cloud6', 6, {
+				x: -100
+			}, '6')
+
+			timeline2.to('#cloud7', 6, {
+				x: 500
+			}, '-=6')
+
+
+			timeline2.to('#cloud8', 6, {
+				x: 500
+			}, '-=6')
+
+			var flightpath = {
+			entry : {
+				curviness: 1.25,
+				autoRotate: true,
+				values: [
+						{x: 100,	y: -20},
+						{x: 300,	y: 10}
+					]
+			},
+			looping : {
+				curviness: 1.25,
+				autoRotate: true,
+				values: [
+						{x: 510,	y: 60},
+						{x: 620,	y: -60},
+						{x: 500,	y: -100},
+						{x: 380,	y: 20},
+						{x: 500,	y: 60},
+						{x: 580,	y: 20},
+						{x: 620,	y: 15}
+					]
+			},
+			leave : {
+				curviness: 1.25,
+				autoRotate: true,
+				values: [
+						{x: 660,	y: 20},
+						{x: 800,	y: 130},
+						{x: $(window).width() + 300,	y: -100},
+					]
+			}
+		};
+
+
+		timeline3.add(TweenMax.to($("#birds1"), 12, {css:{bezier:flightpath.entry}, ease:Power1.easeInOut}))
+		//timeline3.add(TweenMax.to($("#birds1"), 12, {css:{bezier:flightpath.looping}, ease:Power1.easeInOut}))
+		timeline3.add(TweenMax.to($("#birds1"), 12, {css:{bezier:flightpath.leave}, ease:Power1.easeInOut}))
+
+
+
+
+        let scene1 = new ScrollMagic.Scene({
+          triggerElement: "#loading",
+          duration: 400,
+          triggerHook: 0
+		})
+		  .setTween(timeline1)
+		  .addTo(controller)
+		  .addIndicators({name: "Escena 1"}) // add indicators (requires plugin)
+
+
+
+		  let scene3 = new ScrollMagic.Scene({
+          duration: 800,
+          triggerHook: .5
+		})
+		.setPin('#build1')
+		.setTween(timeline3)
+		  .addTo(controller)
+		  .addIndicators({name: "Escena 4"}) // add indicators (requires plugin)
+
+
+		  let scene4 = new ScrollMagic.Scene({
+          duration: 500,
+          triggerElement: "#always",
+          triggerHook: .5
+		})
+		.setPin('#build2')
+		.setTween(timeline3)
+		  .addTo(controller)
+		  .addIndicators({name: "Escena 4"}) // add indicators (requires plugin)
+
+
+
+
+		  let scene2 = new ScrollMagic.Scene({
+          triggerElement: "#always",
+          duration: 800,
+          triggerHook: 0
+		})
+		  .setTween(timeline2)
+		  .addTo(controller)
+		  .addIndicators({name: "Escena 2"}) // add indicators (requires plugin)
+
+
+
+	
+
+	  });
+	  
+
+
+	  
+
+      // 	let controller = new ScrollMagic.Controller();
+
+      // 	let timeline = new TimelineMax();
+      // 	timeline
+      // 	.to('#sixth', 6, {
+      // 		y: -700
+      // 	})
+      // 	.to('#fifth', 6, {
+      // 		y: -500
+      // 	}, '-=6')
+      // 	.to('#forth', 6, {
+      // 		y: -400
+      // 	}, '-=6')
+      // 	.to('#third', 6, {
+      // 		y: -300
+      // 	}, '-=6')
+      // 	.to('#second', 6, {
+      // 		y: -200
+      // 	}, '-=6')
+      // 	.to('#first', 6, {
+      // 		y: -100
+      // 	}, '-=6')
+      // 	.to('.content, .blur', 6, {
+      // 		top: '0%'
+      // 	}, '-=6')
+      // 	.to('.title, nav, .footer-wrapper', 6, {
+      // 		y: -600,
+      // 	}, '-=6')
+      // 	.from('.one', 3, {
+      // 		top: '40px',
+      // 		autoAlpha: 0
+      // 	}, '-=4')
+      // 	.from('.two', 3, {
+      // 		top: '40px',
+      // 		autoAlpha: 0
+      // 	}, '-=3.5')
+      // 	.from('.three', 3, {
+      // 		top: '40px',
+      // 		autoAlpha: 0
+      // 	}, '-=3.5')
+      // 	.from('.four', 3, {
+      // 		top: '40px',
+      // 		autoAlpha: 0
+      // 	}, '-=3.5')
+      // 	.from('.text', 3, {
+      // 		y: 60,
+      // 		autoAlpha: 0
+      // 	}, '-=4')
+
+      // 	let scene = new ScrollMagic.Scene({
+      // 		triggerElement: 'section',
+      // 		duration: '200%',
+      // 		triggerHook: 0
+      // 	})
+      // 	.setTween(timeline)
+      // 	.setPin('section')
+      // 	.addTo(controller);
+      // })
+    </script>
+
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
+  <script type="text/javascript">
+  	$('.click-toggle-block').click(function(){
+  		var target = $(this).attr('data-target');
+  		var targetNone = $(this).attr('data-target-none');
+  		$(targetNone).addClass("active");
+		$(target).css('display','block');
+
+  		$('html, body').animate({
+        	scrollTop: $(target).offset().top
+	    }, 0, function(){
+	   
+	        // Add hash (#) to URL when done scrolling (default click behavior)
+	        window.location.hash = target;
+	    });
+
+  		var vw = $(window).width();
+
+  		if (vw >= 767) {
+		    $('body').css('overflow', 'hidden');
+		}
+  	});
+  	$('.click-toggle-block2').click(function(){
+  		var target = $(this).attr('data-target');
+  		var targetNone = $(this).attr('data-target-none');
+  		$(targetNone).addClass("active");
+		$(target).css('display','block');
+	});
+  	$('.click-toggle-block1').click(function(){
+  		var target = $(this).attr('data-target');
+  		var targetNone = $(this).attr('data-target-none');
+  		$(targetNone).css('display','none');
+  		$(target).css('display','block');
+
+  		$('html, body').animate({
+        	scrollTop: $(target).offset().top
+	    }, 0, function(){
+	   
+	        // Add hash (#) to URL when done scrolling (default click behavior)
+	        window.location.hash = target;
+	    });
+
+	    $('body').css('overflow', 'hidden');
+
+	    if (target == '#know') {
+	    	$('body').css('overflow', 'auto');
+	    }
+  	});
+  	$('.click-toggle-none').click(function(){
+  		var target = $(this).attr('none-target');
+  		var targetB = $(this).attr('block-target');
+  		$(target).css('display','none');
+  		$(targetB).removeClass('active');
+  		$('body').css('overflow', 'auto');
+  	});
+  </script> 
+  </body>
 </html>
