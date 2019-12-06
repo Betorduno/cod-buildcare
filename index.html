@@ -65,7 +65,7 @@
                   return 0
               })
 
-              console.log(items)
+             // console.log(items)
 
               let currentCategory = null;
 
@@ -73,23 +73,30 @@
                 const item = items[idxSection];
                 let sectionIdxPlus = (idxSection + 1)
                 // section
+                
                 $('.third' + sectionIdxPlus).click(function(){
                   let section = item
-                  console.log('seccion ' + sectionIdxPlus)
+                 // console.log('seccion ' + sectionIdxPlus)
                   // category
                   for (let idxCategory = 0; idxCategory < item.categories.length; idxCategory++) {
                     const category = item.categories[idxCategory];
-                    let classCategory = '.cat' + sectionIdxPlus + idxCategory
+                     
+                    let titleCategory = category.category;
+                    
+                    console.log('>>>>>><', titleCategory)
+                    let classCategory = 'cat' + sectionIdxPlus + idxCategory
+                    $('.categories'+ sectionIdxPlus).append("<li class='"+classCategory+"'><i class='fa fa-angle-right'></i>"+titleCategory+"</li>")
+                    classCategory = '.' + classCategory
                     $(classCategory).click(function(){
                       $(classCategory).addClass('active')
                       if (currentCategory) $(currentCategory).removeClass('active')
                       currentCategory = classCategory
-                      console.log('categoria ' + idxCategory)
+                      //console.log('categoria ' + idxCategory)
                       // images
                       for (let idxImg = 0; idxImg < category.images.length; idxImg++) {
                         const image = category.images[idxImg];
 
-                        console.log('image ' + idxImg)
+                        //console.log('image ' + idxImg)
                         $('.img' + sectionIdxPlus + idxImg).css("background-image", "url('"+ image.url +"')");
                       } 
 
@@ -100,6 +107,7 @@
                       $(classCategory).trigger('click');
                     }
                   }
+           
                 })
               }
             })
@@ -563,14 +571,14 @@
                   <p><b> Professional </b> Services</p>
                 </div>
                 <div class="toggle-buttons">
-                  <ul>
-                    <li class="cat10 active">
+                  <ul class="categories1">
+                    <!-- <li class="cat10 active">
                       <i class="fa fa-angle-right"></i> Concierge
                     </li>
                     <li class="cat11"><i class="fa fa-angle-right"></i> Technicians</li>
                     <li class="cat12"><i class="fa fa-angle-right"></i> Porter</li>
                     <li class="cat13"><i class="fa fa-angle-right"></i> Labor</li>
-                    <li class="cat14"><i class="fa fa-angle-right"></i> Cleaners</li>
+                    <li class="cat14"><i class="fa fa-angle-right"></i> Cleaners</li> -->
                   </ul>
                 </div>
               </div>
@@ -703,14 +711,14 @@
                   <p><b> Professional </b> Services</p>
                 </div>
                 <div class="toggle-buttons">
-                  <ul>
-                    <li class="cat20 active">
+                  <ul class="categories2">
+                    <!-- <li class="cat20 active">
                       <i class="fa fa-angle-right"></i> Concierge
                     </li>
                     <li class="cat21"><i class="fa fa-angle-right"></i> Technicians</li>
                     <li class="cat22"><i class="fa fa-angle-right"></i> Porter</li>
                     <li class="cat23"><i class="fa fa-angle-right"></i> Labor</li>
-                    <li class="cat24"><i class="fa fa-angle-right"></i> Cleaners</li>
+                    <li class="cat24"><i class="fa fa-angle-right"></i> Cleaners</li> -->
                   </ul>
                 </div>
               </div>
@@ -791,14 +799,14 @@
                   <p><b> Professional </b> Services</p>
                 </div>
                 <div class="toggle-buttons">
-                  <ul>
-                    <li class="active cat30">
+                  <ul class="categories3">
+                    <!-- <li class="active cat30">
                       <i class="fa fa-angle-right"></i> Concierge
                     </li>
                     <li class="cat31"><i class="fa fa-angle-right"></i> Technicians</li>
                     <li class="cat32"><i class="fa fa-angle-right"></i> Porter</li>
                     <li class="cat33"><i class="fa fa-angle-right"></i> Labor</li>
-                    <li class="cat34"><i class="fa fa-angle-right"></i> Cleaners</li>
+                    <li class="cat34"><i class="fa fa-angle-right"></i> Cleaners</li> -->
                   </ul>
                 </div>
               </div>
@@ -808,17 +816,17 @@
                 <div class="Supplementary-outer-con">
                   <div class="Supplementary-1 Supplementaryed">
                     <div class="img30 foto-1 Supplementary-text Supplementary-text-1">
-                      <p>Foto 01</p>
+                     
                     </div>
                   </div>
                   <div class="Supplementary-2 Supplementaryed">
                     <div class="img31 foto-2 Supplementary-text">
-                      <p>Foto 02</p>
+                     
                     </div>
                   </div>
                   <div class="Supplementary-3 Supplementaryed">
                     <div class="img32 foto-3 Supplementary-text">
-                      <p>Foto 03</p>
+                    
                     </div>
                   </div>
                 </div>
