@@ -25,6 +25,7 @@
         .foto-1 {
             width: 100%;
             height: 40%;
+            /* min-height: 230px; */
             background-color: #CFD2D3;
         }
 
@@ -104,10 +105,19 @@
             font-size: 35px;
             font-weight: bold;
             color: #fff;
-            background-size: 100% 100%;
+            /* background-size: 100% 100% !important; */
+            /* background-repeat: no-repeat !important; */
+            background-position: center;
+            background-size: cover;
             background-repeat: no-repeat;
-            object-fit: cover;
-            object-position: center center;
+            /* background-position: center; */
+            position: relative;
+            /* min-height: 300px; */
+            
+          
+           /* object-fit: cover;
+            object-position: center center; */
+          
 
             margin: 0px;
             padding: 0px;
@@ -308,19 +318,19 @@
 
         .Supplementary-3 {
             /* width: 250px; */
-            height: 150px;
+            height: 200px;
             background-color: #959798;
         }
 
         .Supplementary-2 {
             /* width: 250px; */
-            height: 150px;
+            height: 200px;
             background-color: #CACCCE;
         }
 
         .Supplementary-1 {
             /* width: 250px; */
-            height: 150px;
+            height: 200px;
             background-color: #EFEFF0;
         }
 
